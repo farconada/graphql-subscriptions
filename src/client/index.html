@@ -8,9 +8,9 @@
 <body>
 <script>
     var socket = io.connect('http://localhost:3000');
-    socket.emit('graphql', "subscription { updatedCount}");
+    socket.emit('graphql:subscribe', "subscription { updatedCount}");
 
-    socket.on('graphql', function (data) {
+    socket.on('graphql:data', function (data) {
         console.log(data);
     });
 </script>

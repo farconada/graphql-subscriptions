@@ -9,19 +9,21 @@ export const events = new EventEmitter2({
     maxListeners: 500 // pq si
 });
 
-events.on('subscribe', (socket, query) => {
-    // apuntarse a la lista de subscritos
-    if (!Array.isArray(subscriptionStorage.updatedCount)) {
-        subscriptionStorage.updatedCount = [];
+events.on('graphql:subscribe', (socketId, query) => {
+    if (!(query.fieldName in subscriptionStorage)) {
+        subscriptionStorage[query.fieldName] = {};
     }
-    subscriptionStorage.updatedCount.push({client: socket.id, query});
-
+    subscriptionStorage[query.fieldName][socketId] = query.operation.loc.source.body;
 });
 
-events.on('updateCount', () => {
-    if (Array.isArray(subscriptionStorage.updatedCount)) {
-        subscriptionStorage.updatedCount.forEach(subscription => {
-            graphql(schema, subscription.query, {})
+events.on('graphql:unsubscribe', (socket, query) => {
+    delete subscriptionStorage[query.fieldName][socketId];
+});
+
+events.on('updatedCount', () => {
+    if (subscriptionStorage.updatedCount) {
+        Object.keys(subscriptionStorage.updatedCount).forEach(subscription => {
+            graphql(schema, subscriptionStorage.updatedCount[subscription], {})
                 .then(resolved => {
                         console.log(JSON.stringify(resolved, null, 2));
                     }

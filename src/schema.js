@@ -31,7 +31,7 @@ const schema = new GraphQLSchema({
                 description: 'Updates the count',
                 resolve: (parent, args) => {
                     count += 1;
-                    events.emit('updateCount');
+                    events.emit('updatedCount');
                     return count;
                 }
             }
@@ -44,8 +44,12 @@ const schema = new GraphQLSchema({
                 type: GraphQLInt,
                 description: 'Updates the count',
                 resolve: (parent, args, bla, queryAST) => {
-                    if (('firedFrom' in parent) && parent.firedFrom === 'client') {
-                        events.emit('subscribe', parent.socket, queryAST);
+                    if (('operation' in parent) && parent.operation === 'subscribe') {
+                        events.emit('graphql:subscribe', parent.socket.id, queryAST);
+                        return '';
+                    }
+                    if (('operation' in parent) && parent.operation === 'unsubscribe') {
+                        events.emit('graphql:unsubscribe', parent.socket.id, queryAST);
                         return '';
                     }
                     return count;
